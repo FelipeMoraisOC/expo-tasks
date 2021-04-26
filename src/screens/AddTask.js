@@ -1,14 +1,55 @@
 import React, { Component } from "react";
-import { Modal, View, StyleSheet, TouchableWithoutFeedback, Text, TouchableOpacity, TextInput, Button } from "react-native";
+import { Platform, Modal, View, StyleSheet, TouchableWithoutFeedback, Text, TouchableOpacity, TextInput, Button } from "react-native";
 import commonStyles from "../commonStyles";
 
-const initialState = {desc: ''}
+import moment from 'moment'
+import DateTimePicker from '@react-native-community/datetimepicker'
+
+const initialState = {desc: '', date: new Date(), showDatePicker: false}
 
 export default class AddTask extends Component {
 
     state = {
         ...initialState
     }
+
+    save = () => {
+        const newTask = {
+            ...this.state
+        }
+
+        this.props.onSave(newTask) && this.props.onSave(newTask)
+        this.setState({...initialState})
+    }
+
+    
+
+    getDatePicker = () => {
+        let datePicker =  <DateTimePicker 
+            value={this.state.date}
+            onChange={(_, date) => this.setState({date: date, showDatePicker: false})}
+            mode="date"
+        />
+
+        const dateString = moment(this.state.date).format('dddd, D [de] MMMM [de] YYYY')
+        //Creates a button that shows the calendar, Android only 
+        if(Platform.OS === 'android'){
+            datePicker =(
+                <View>
+                    <TouchableOpacity onPress={() => this.setState({showDatePicker: true})}>
+                        <Text style={styles.date}>
+                            {dateString}
+                        </Text>
+                    </TouchableOpacity>
+                    {/* Date picker just changes when jsx is loaded */}
+                    {this.state.showDatePicker && datePicker}
+                </View>
+            )
+        }
+        
+       return datePicker
+    }
+
     render(){
         return(
             <Modal transparent={true} 
@@ -22,12 +63,13 @@ export default class AddTask extends Component {
                     <TextInput style={styles.input} placeholder="Informe a descrição..." 
                     onChangeText={x => this.setState({ desc: x })} 
                     value={this.state.desc}/>
+                    {this.getDatePicker()}
                     <View style={styles.buttons}>
                         <TouchableOpacity onPress={this.props.onCancel}>
                             <Text style={styles.button}>Cancelar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity>
-                        <Text style={styles.button}>Salvar</Text>
+                        <Text style={styles.button} onPress={this.save}>Salvar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -76,5 +118,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#E3E3E3',
         borderRadius: 6
+    },
+    date:{
+        fontFamily: commonStyles.fontFamily,
+        fontSize: 20,
+        marginLeft: 15
     }
 })
